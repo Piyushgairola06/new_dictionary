@@ -5,50 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🌩️ Cloud Dictionary</title>
 
-  <!-- React, ReactDOM, Babel -->
+  <!-- React + Babel -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- TailwindCSS -->
+  <!-- Tailwind -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
 
-  <!-- Custom glow and dark styling -->
   <style>
     body {
       background: radial-gradient(circle at top, #0f172a, #000);
       color: #e2e8f0;
       font-family: 'Inter', sans-serif;
       min-height: 100vh;
-      overflow-x: hidden;
     }
-
     .card {
-      background: rgba(30, 41, 59, 0.8);
+      background: rgba(30, 41, 59, 0.85);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
-    }
-
-    .glow-text {
-      text-shadow: 0 0 12px rgba(59, 130, 246, 0.7);
-    }
-
-    .input-box {
-      background: rgba(51, 65, 85, 0.8);
-      color: #fff;
-    }
-
-    ::placeholder {
-      color: #94a3b8;
-    }
-
-    button {
-      transition: all 0.2s ease;
-    }
-
-    button:hover {
-      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
     }
   </style>
 </head>
@@ -59,105 +35,165 @@
     const { useState } = React;
 
     function App() {
-      const [query, setQuery] = useState('');
+      const [page, setPage] = useState("login");
+      const [role, setRole] = useState(null);
+      const [credentials, setCredentials] = useState({ id: "", password: "" });
+
+      const handleLogin = async () => {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...credentials, role }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setPage("dictionary");
+        } else {
+          alert(data.error);
+        }
+      };
+
+      const handleLogout = async () => {
+        await fetch("/api/logout", { method: "POST" });
+        setPage("login");
+        setRole(null);
+      };
+
+      if (page === "login") {
+        return (
+          <div className="flex flex-col items-center justify-center min-h-screen">
+            <h1 className="text-4xl text-blue-400 font-bold mb-8 glow-text">🌩️ Cloud Dictionary</h1>
+            <div className="card p-8 rounded-2xl w-80">
+              <h2 className="text-2xl font-semibold mb-4 text-center">Login</h2>
+              <select
+                className="w-full mb-3 p-2 rounded bg-slate-700"
+                value={role || ""}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                <option value="">Select Role</option>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+
+              {role === "admin" && (
+                <>
+                  <input
+                    className="w-full mb-3 p-2 rounded bg-slate-700"
+                    placeholder="Admin ID"
+                    value={credentials.id}
+                    onChange={(e) => setCredentials({ ...credentials, id: e.target.value })}
+                  />
+                  <input
+                    className="w-full mb-3 p-2 rounded bg-slate-700"
+                    type="password"
+                    placeholder="Password"
+                    value={credentials.password}
+                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                  />
+                </>
+              )}
+
+              <button
+                onClick={handleLogin}
+                className="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded font-semibold"
+              >
+                Login
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <Dictionary role={role} handleLogout={handleLogout} />
+      );
+    }
+
+    function Dictionary({ role, handleLogout }) {
+      const [query, setQuery] = useState("");
       const [results, setResults] = useState(null);
-      const [loading, setLoading] = useState(false);
-      const [error, setError] = useState(null);
+      const [newWord, setNewWord] = useState("");
+      const [newTranslation, setNewTranslation] = useState("");
 
       const handleSearch = async () => {
         if (!query.trim()) return;
-        setLoading(true);
-        setError(null);
-        try {
-          const response = await fetch(`/api/define/${encodeURIComponent(query)}`);
-          const data = await response.json();
-          if (response.ok) {
-            setResults(data);
-          } else {
-            setError(data.error || 'Word not found');
-            setResults(null);
-          }
-        } catch (err) {
-          setError('Failed to fetch definition');
-          setResults(null);
-        }
-        setLoading(false);
+        const res = await fetch(`/api/define/${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if (res.ok) setResults(data);
+        else alert(data.error);
+      };
+
+      const addTranslation = async () => {
+        const res = await fetch("/api/add_translation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ word: newWord, garhwali: newTranslation }),
+        });
+        const data = await res.json();
+        alert(data.message || data.error);
       };
 
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-blue-400 glow-text flex items-center">
-            🌩️ Cloud Dictionary
-          </h1>
-          <div className="w-full max-w-lg">
-            <div className="flex gap-2 mb-6">
+        <div className="flex flex-col items-center min-h-screen p-4">
+          <div className="flex justify-between w-full max-w-3xl mb-6">
+            <h1 className="text-3xl font-bold text-blue-400 glow-text">🌩️ Cloud Dictionary</h1>
+            <button onClick={handleLogout} className="text-sm bg-red-500 px-3 py-1 rounded">Logout</button>
+          </div>
+
+          <div className="card w-full max-w-lg p-6 rounded-2xl">
+            <div className="flex gap-2 mb-4">
               <input
-                type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Type a word..."
-                className="flex-1 p-3 rounded-lg input-box border border-slate-600 focus:ring-2 focus:ring-blue-500 outline-none"
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="flex-1 p-3 rounded bg-slate-700 text-white"
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
-              <button
-                onClick={handleSearch}
-                className="bg-blue-500 text-white px-5 py-3 rounded-lg font-semibold hover:bg-blue-600 shadow-lg"
-              >
+              <button onClick={handleSearch} className="bg-blue-500 px-4 py-2 rounded">
                 Search
               </button>
             </div>
 
-            {loading && <p className="text-gray-400 animate-pulse">Fetching definition...</p>}
-            {error && <p className="text-red-400">{error}</p>}
-
-           {results && (
-  <div className="card rounded-2xl p-6 mt-4">
-    <h2 className="text-3xl font-bold text-blue-300 mb-2">{results.word}</h2>
-    {results.phonetics?.length > 0 && (
-      <p className="text-gray-400 italic">{results.phonetics[0].text}</p>
-    )}
-
-    {/* ✅ Show Garhwali Translation if available */}
-    {results.garhwali && (
-      <p className="text-green-400 mt-3 text-lg font-medium">
-        Garhwali Translation: <span className="text-white">{results.garhwali}</span>
-      </p>
-    )}
-
-    {!results.garhwali && (
-      <p className="text-yellow-400 mt-3 text-lg font-medium">
-        Garhwali Translation: Not available
-      </p>
-    )}
-
-    {results.meanings?.map((meaning, index) => (
-      <div key={index} className="mt-5">
-        <h3 className="text-xl text-blue-400 font-semibold mb-1">
-          {meaning.partOfSpeech}
-        </h3>
-        <ul className="list-disc pl-5 space-y-2 text-gray-300">
-          {meaning.definitions.map((def, i) => (
-            <li key={i}>
-              {def.definition}
-              {def.example && (
-                <p className="text-gray-500 italic mt-1">
-                  “{def.example}”
-                </p>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    ))}
-  </div>
-)}
-
+            {results && (
+              <div>
+                <h2 className="text-2xl text-blue-300 font-semibold mb-2">{results.word}</h2>
+                {results.garhwali ? (
+                  <p className="text-green-400">Garhwali: {results.garhwali}</p>
+                ) : (
+                  <p className="text-yellow-400">Garhwali: Not available</p>
+                )}
+              </div>
+            )}
           </div>
+
+          {role === "admin" && (
+            <div className="card mt-8 p-6 rounded-2xl w-full max-w-lg">
+              <h3 className="text-xl font-semibold mb-4 text-blue-400">Add Garhwali Translation</h3>
+              <input
+                placeholder="English word"
+                value={newWord}
+                onChange={(e) => setNewWord(e.target.value)}
+                className="w-full p-2 mb-3 rounded bg-slate-700"
+              />
+              <input
+                placeholder="Garhwali translation"
+                value={newTranslation}
+                onChange={(e) => setNewTranslation(e.target.value)}
+                className="w-full p-2 mb-3 rounded bg-slate-700"
+              />
+              <button
+                onClick={addTranslation}
+                className="bg-green-500 px-4 py-2 rounded hover:bg-green-600 font-semibold"
+              >
+                Add Translation
+              </button>
+            </div>
+          )}
         </div>
       );
     }
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
   </script>
 </body>
 </html>
