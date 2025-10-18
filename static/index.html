@@ -10,24 +10,57 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- Tailwind -->
+  <!-- TailwindCSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
 
   <style>
     body {
+      margin: 0;
+      min-height: 100vh;
       background: radial-gradient(circle at top, #0f172a, #000);
       color: #e2e8f0;
       font-family: 'Inter', sans-serif;
-      min-height: 100vh;
+      overflow: hidden;
     }
+
+    .glow-text {
+      text-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+    }
+
+    .glow-button {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: white;
+      font-weight: bold;
+      font-size: 1.25rem;
+      padding: 1rem 2.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .glow-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 40px rgba(147, 51, 234, 0.7);
+    }
+
     .card {
-      background: rgba(30, 41, 59, 0.85);
+      background: rgba(30, 41, 59, 0.9);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .fade-in {
+      animation: fadeIn 1s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
+
 <body>
   <div id="root"></div>
 
@@ -35,7 +68,7 @@
     const { useState } = React;
 
     function App() {
-      const [page, setPage] = useState("login");
+      const [page, setPage] = useState("landing");
       const [role, setRole] = useState(null);
       const [credentials, setCredentials] = useState({ id: "", password: "" });
 
@@ -55,58 +88,81 @@
 
       const handleLogout = async () => {
         await fetch("/api/logout", { method: "POST" });
-        setPage("login");
+        setPage("landing");
         setRole(null);
       };
 
-      if (page === "login") {
+      // 🌌 Landing Page
+      if (page === "landing") {
         return (
-          <div className="flex flex-col items-center justify-center min-h-screen">
-            <h1 className="text-4xl text-blue-400 font-bold mb-8 glow-text">🌩️ Cloud Dictionary</h1>
-            <div className="card p-8 rounded-2xl w-80">
-              <h2 className="text-2xl font-semibold mb-4 text-center">Login</h2>
-              <select
-                className="w-full mb-3 p-2 rounded bg-slate-700"
-                value={role || ""}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                <option value="">Select Role</option>
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-              </select>
-
-              {role === "admin" && (
-                <>
-                  <input
-                    className="w-full mb-3 p-2 rounded bg-slate-700"
-                    placeholder="Admin ID"
-                    value={credentials.id}
-                    onChange={(e) => setCredentials({ ...credentials, id: e.target.value })}
-                  />
-                  <input
-                    className="w-full mb-3 p-2 rounded bg-slate-700"
-                    type="password"
-                    placeholder="Password"
-                    value={credentials.password}
-                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                  />
-                </>
-              )}
-
+          <div className="flex flex-col items-center justify-center h-screen fade-in">
+            <h1 className="text-5xl md:text-6xl font-extrabold mb-16 text-blue-400 glow-text">
+              🌩️ Cloud Dictionary
+            </h1>
+            <div className="flex flex-col md:flex-row gap-8">
               <button
-                onClick={handleLogin}
-                className="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded font-semibold"
+                className="glow-button"
+                onClick={() => {
+                  setRole("user");
+                  setPage("dictionary");
+                }}
               >
-                Login
+                👤 I’m a User
+              </button>
+              <button
+                className="glow-button"
+                onClick={() => {
+                  setRole("admin");
+                  setPage("admin-login");
+                }}
+              >
+                🔐 I’m an Admin
               </button>
             </div>
           </div>
         );
       }
 
-      return (
-        <Dictionary role={role} handleLogout={handleLogout} />
-      );
+      // 🔑 Admin Login Page
+      if (page === "admin-login") {
+        return (
+          <div className="flex flex-col items-center justify-center h-screen fade-in">
+            <h1 className="text-4xl font-bold text-purple-400 mb-6 glow-text">
+              Admin Login
+            </h1>
+            <div className="card p-8 rounded-2xl w-80">
+              <input
+                className="w-full mb-3 p-3 rounded bg-slate-800 text-white"
+                placeholder="Admin ID"
+                value={credentials.id}
+                onChange={(e) => setCredentials({ ...credentials, id: e.target.value })}
+              />
+              <input
+                type="password"
+                className="w-full mb-5 p-3 rounded bg-slate-800 text-white"
+                placeholder="Password"
+                value={credentials.password}
+                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+              />
+              <button
+                onClick={handleLogin}
+                className="w-full glow-button text-center"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => setPage("landing")}
+                className="text-gray-400 text-sm mt-3 hover:text-gray-200"
+              >
+                ← Back
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      // 📘 Dictionary Panel
+      return <Dictionary role={role} handleLogout={handleLogout} />;
     }
 
     function Dictionary({ role, handleLogout }) {
@@ -134,29 +190,42 @@
       };
 
       return (
-        <div className="flex flex-col items-center min-h-screen p-4">
+        <div className="flex flex-col items-center min-h-screen p-6 fade-in">
           <div className="flex justify-between w-full max-w-3xl mb-6">
-            <h1 className="text-3xl font-bold text-blue-400 glow-text">🌩️ Cloud Dictionary</h1>
-            <button onClick={handleLogout} className="text-sm bg-red-500 px-3 py-1 rounded">Logout</button>
+            <h1 className="text-3xl font-bold text-blue-400 glow-text">
+              🌩️ Cloud Dictionary
+            </h1>
+            <button
+              onClick={handleLogout}
+              className="text-sm bg-red-500 px-3 py-1 rounded hover:bg-red-600"
+            >
+              Logout
+            </button>
           </div>
 
+          {/* Search Section */}
           <div className="card w-full max-w-lg p-6 rounded-2xl">
             <div className="flex gap-2 mb-4">
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Type a word..."
-                className="flex-1 p-3 rounded bg-slate-700 text-white"
+                className="flex-1 p-3 rounded bg-slate-800 text-white"
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
-              <button onClick={handleSearch} className="bg-blue-500 px-4 py-2 rounded">
+              <button
+                onClick={handleSearch}
+                className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600"
+              >
                 Search
               </button>
             </div>
 
             {results && (
               <div>
-                <h2 className="text-2xl text-blue-300 font-semibold mb-2">{results.word}</h2>
+                <h2 className="text-2xl text-blue-300 font-semibold mb-2 flex items-center gap-2">
+                  {results.word}
+                </h2>
                 {results.garhwali ? (
                   <p className="text-green-400">Garhwali: {results.garhwali}</p>
                 ) : (
@@ -166,6 +235,7 @@
             )}
           </div>
 
+          {/* Admin Section */}
           {role === "admin" && (
             <div className="card mt-8 p-6 rounded-2xl w-full max-w-lg">
               <h3 className="text-xl font-semibold mb-4 text-blue-400">Add Garhwali Translation</h3>
@@ -173,13 +243,13 @@
                 placeholder="English word"
                 value={newWord}
                 onChange={(e) => setNewWord(e.target.value)}
-                className="w-full p-2 mb-3 rounded bg-slate-700"
+                className="w-full p-2 mb-3 rounded bg-slate-800 text-white"
               />
               <input
                 placeholder="Garhwali translation"
                 value={newTranslation}
                 onChange={(e) => setNewTranslation(e.target.value)}
-                className="w-full p-2 mb-3 rounded bg-slate-700"
+                className="w-full p-2 mb-3 rounded bg-slate-800 text-white"
               />
               <button
                 onClick={addTranslation}
