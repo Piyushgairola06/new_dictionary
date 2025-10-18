@@ -5,7 +5,7 @@ import os
 import json
 
 app = Flask(__name__, static_folder='static')
-app.secret_key = os.environ.get("SECRET_KEY", "mysecretkey")  # for session handling
+app.secret_key = os.environ.get("SECRET_KEY", "mysecretkey")
 CORS(app, supports_credentials=True)
 
 # Load Garhwali translations
@@ -15,7 +15,12 @@ try:
 except FileNotFoundError:
     garhwali_translations = {}
 
-# Hardcoded Admin credentials (you can later move them to env vars)
+# Load requests
+REQUEST_FILE = "requests.json"
+if not os.path.exists(REQUEST_FILE):
+    with open(REQUEST_FILE, "w", encoding="utf-8") as f:
+        json.dump([], f)
+
 ADMIN_ID = "admin"
 ADMIN_PASS = "12345"
 
@@ -23,7 +28,8 @@ ADMIN_PASS = "12345"
 def serve_frontend():
     return send_from_directory(app.static_folder, 'index.html')
 
-# ✅ User/Role Login
+
+# ✅ LOGIN
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -43,12 +49,14 @@ def login():
     else:
         return jsonify({"error": "Invalid role"}), 400
 
+
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.pop('role', None)
     return jsonify({"message": "Logged out"})
 
-# ✅ Dictionary Definition
+
+# ✅ DICTIONARY LOOKUP
 @app.route('/api/define/<word>', methods=['GET'])
 def define_word(word):
     try:
@@ -64,7 +72,8 @@ def define_word(word):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ✅ Protected Translation Addition (only Admin)
+
+# ✅ ADMIN: Add translation
 @app.route('/api/add_translation', methods=['POST'])
 def add_translation():
     if session.get('role') != 'admin':
@@ -81,9 +90,62 @@ def add_translation():
         with open('garhwali_translations.json', 'w', encoding='utf-8') as f:
             json.dump(garhwali_translations, f, ensure_ascii=False, indent=4)
 
+        # Remove from requests if it existed
+        with open(REQUEST_FILE, "r+", encoding="utf-8") as f:
+            requests_data = json.load(f)
+            requests_data = [r for r in requests_data if r["word"].lower() != word]
+            f.seek(0)
+            f.truncate()
+            json.dump(requests_data, f, indent=4)
+
         return jsonify({'message': f'Translation for "{word}" added successfully!'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# ✅ USER: Request translation
+@app.route('/api/request_translation', methods=['POST'])
+def request_translation():
+    data = request.get_json()
+    word = data.get('word', '').lower()
+    if not word:
+        return jsonify({'error': 'Word is required'}), 400
+
+    with open(REQUEST_FILE, "r+", encoding="utf-8") as f:
+        requests_data = json.load(f)
+        # Avoid duplicates
+        if any(req['word'] == word for req in requests_data):
+            return jsonify({'message': 'Request already exists'})
+        requests_data.append({'word': word})
+        f.seek(0)
+        json.dump(requests_data, f, indent=4)
+
+    return jsonify({'message': f'Request for "{word}" submitted successfully!'})
+
+
+# ✅ ADMIN: Get all requests
+@app.route('/api/get_requests', methods=['GET'])
+def get_requests():
+    if session.get('role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    with open(REQUEST_FILE, "r", encoding="utf-8") as f:
+        return jsonify(json.load(f))
+
+
+# ✅ ADMIN: Clear a request
+@app.route('/api/clear_request', methods=['POST'])
+def clear_request():
+    if session.get('role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    data = request.get_json()
+    word = data.get('word', '').lower()
+    with open(REQUEST_FILE, "r+", encoding="utf-8") as f:
+        requests_data = json.load(f)
+        requests_data = [r for r in requests_data if r["word"].lower() != word]
+        f.seek(0)
+        f.truncate()
+        json.dump(requests_data, f, indent=4)
+    return jsonify({'message': f'Request for "{word}" removed'})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
