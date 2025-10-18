@@ -221,18 +221,54 @@
               </button>
             </div>
 
-            {results && (
-              <div>
-                <h2 className="text-2xl text-blue-300 font-semibold mb-2 flex items-center gap-2">
-                  {results.word}
-                </h2>
-                {results.garhwali ? (
-                  <p className="text-green-400">Garhwali: {results.garhwali}</p>
-                ) : (
-                  <p className="text-yellow-400">Garhwali: Not available</p>
-                )}
-              </div>
-            )}
+           {results && (
+  <div className="mt-4">
+    {/* Word Heading */}
+    <h2 className="text-3xl text-blue-300 font-semibold mb-2 flex items-center gap-2">
+      {results.word}
+    </h2>
+
+    {/* Phonetics */}
+    {results.phonetics?.length > 0 && (
+      <p className="text-gray-400 italic mb-3">
+        {results.phonetics[0].text || ""}
+      </p>
+    )}
+
+    {/* Garhwali Translation */}
+    {results.garhwali ? (
+      <p className="text-green-400 text-lg mb-4">
+        Garhwali: <span className="text-white">{results.garhwali}</span>
+      </p>
+    ) : (
+      <p className="text-yellow-400 text-lg mb-4">
+        Garhwali: Not available
+      </p>
+    )}
+
+    {/* English Meanings */}
+    {results.meanings?.map((meaning, idx) => (
+      <div key={idx} className="mt-3">
+        <h3 className="text-xl text-blue-400 font-semibold mb-1">
+          {meaning.partOfSpeech}
+        </h3>
+        <ul className="list-disc pl-5 space-y-2 text-gray-300">
+          {meaning.definitions?.map((def, i) => (
+            <li key={i}>
+              {def.definition}
+              {def.example && (
+                <p className="text-gray-500 italic mt-1">
+                  “{def.example}”
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+)}
+
           </div>
 
           {/* Admin Section */}
@@ -267,3 +303,4 @@
   </script>
 </body>
 </html>
+
