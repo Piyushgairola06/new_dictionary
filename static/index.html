@@ -170,6 +170,7 @@
       const [results, setResults] = useState(null);
       const [newWord, setNewWord] = useState("");
       const [newTranslation, setNewTranslation] = useState("");
+      const [requests, setRequests] = useState([]);
 
       const handleSearch = async () => {
         if (!query.trim()) return;
@@ -187,6 +188,12 @@
         });
         const data = await res.json();
         alert(data.message || data.error);
+      };
+
+      const fetchRequests = async () => {
+        const res = await fetch("/api/get_requests");
+        const data = await res.json();
+        setRequests(data);
       };
 
       return (
@@ -221,79 +228,130 @@
               </button>
             </div>
 
-           {results && (
-  <div className="mt-4">
-    {/* Word Heading */}
-    <h2 className="text-3xl text-blue-300 font-semibold mb-2 flex items-center gap-2">
-      {results.word}
-    </h2>
+            {results && (
+              <div className="mt-4">
+                <h2 className="text-3xl text-blue-300 font-semibold mb-2">
+                  {results.word}
+                </h2>
+                {results.phonetics?.length > 0 && (
+                  <p className="text-gray-400 italic mb-3">
+                    {results.phonetics[0].text || ""}
+                  </p>
+                )}
 
-    {/* Phonetics */}
-    {results.phonetics?.length > 0 && (
-      <p className="text-gray-400 italic mb-3">
-        {results.phonetics[0].text || ""}
-      </p>
-    )}
+                {/* Garhwali Translation */}
+                {results.garhwali ? (
+                  <p className="text-green-400 text-lg mb-4">
+                    Garhwali: <span className="text-white">{results.garhwali}</span>
+                  </p>
+                ) : (
+                  <div className="flex flex-col items-start gap-2 mb-4">
+                    <p className="text-yellow-400 text-lg">Garhwali: Not available</p>
+                    {role === "user" && (
+                      <button
+                        onClick={async () => {
+                          const res = await fetch("/api/request_translation", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ word: results.word }),
+                          });
+                          const data = await res.json();
+                          alert(data.message || data.error);
+                        }}
+                        className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded text-white"
+                      >
+                        Request Translation
+                      </button>
+                    )}
+                  </div>
+                )}
 
-    {/* Garhwali Translation */}
-    {results.garhwali ? (
-      <p className="text-green-400 text-lg mb-4">
-        Garhwali: <span className="text-white">{results.garhwali}</span>
-      </p>
-    ) : (
-      <p className="text-yellow-400 text-lg mb-4">
-        Garhwali: Not available
-      </p>
-    )}
-
-    {/* English Meanings */}
-    {results.meanings?.map((meaning, idx) => (
-      <div key={idx} className="mt-3">
-        <h3 className="text-xl text-blue-400 font-semibold mb-1">
-          {meaning.partOfSpeech}
-        </h3>
-        <ul className="list-disc pl-5 space-y-2 text-gray-300">
-          {meaning.definitions?.map((def, i) => (
-            <li key={i}>
-              {def.definition}
-              {def.example && (
-                <p className="text-gray-500 italic mt-1">
-                  “{def.example}”
-                </p>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    ))}
-  </div>
-)}
-
+                {/* English Meanings */}
+                {results.meanings?.map((meaning, idx) => (
+                  <div key={idx} className="mt-3">
+                    <h3 className="text-xl text-blue-400 font-semibold mb-1">
+                      {meaning.partOfSpeech}
+                    </h3>
+                    <ul className="list-disc pl-5 space-y-2 text-gray-300">
+                      {meaning.definitions?.map((def, i) => (
+                        <li key={i}>
+                          {def.definition}
+                          {def.example && (
+                            <p className="text-gray-500 italic mt-1">
+                              “{def.example}”
+                            </p>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Admin Section */}
           {role === "admin" && (
-            <div className="card mt-8 p-6 rounded-2xl w-full max-w-lg">
-              <h3 className="text-xl font-semibold mb-4 text-blue-400">Add Garhwali Translation</h3>
-              <input
-                placeholder="English word"
-                value={newWord}
-                onChange={(e) => setNewWord(e.target.value)}
-                className="w-full p-2 mb-3 rounded bg-slate-800 text-white"
-              />
-              <input
-                placeholder="Garhwali translation"
-                value={newTranslation}
-                onChange={(e) => setNewTranslation(e.target.value)}
-                className="w-full p-2 mb-3 rounded bg-slate-800 text-white"
-              />
-              <button
-                onClick={addTranslation}
-                className="bg-green-500 px-4 py-2 rounded hover:bg-green-600 font-semibold"
-              >
-                Add Translation
-              </button>
-            </div>
+            <>
+              {/* Add Translation */}
+              <div className="card mt-8 p-6 rounded-2xl w-full max-w-lg">
+                <h3 className="text-xl font-semibold mb-4 text-blue-400">Add Garhwali Translation</h3>
+                <input
+                  placeholder="English word"
+                  value={newWord}
+                  onChange={(e) => setNewWord(e.target.value)}
+                  className="w-full p-2 mb-3 rounded bg-slate-800 text-white"
+                />
+                <input
+                  placeholder="Garhwali translation"
+                  value={newTranslation}
+                  onChange={(e) => setNewTranslation(e.target.value)}
+                  className="w-full p-2 mb-3 rounded bg-slate-800 text-white"
+                />
+                <button
+                  onClick={addTranslation}
+                  className="bg-green-500 px-4 py-2 rounded hover:bg-green-600 font-semibold"
+                >
+                  Add Translation
+                </button>
+              </div>
+
+              {/* View Translation Requests */}
+              <div className="card mt-8 p-6 rounded-2xl w-full max-w-lg">
+                <h3 className="text-xl font-semibold mb-4 text-blue-400">Pending Translation Requests</h3>
+                <button
+                  onClick={fetchRequests}
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mb-3"
+                >
+                  Refresh Requests
+                </button>
+                {requests.length === 0 ? (
+                  <p className="text-gray-400">No pending requests</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {requests.map((r, idx) => (
+                      <li key={idx} className="flex justify-between items-center">
+                        <span className="text-gray-200">{r.word}</span>
+                        <button
+                          onClick={async () => {
+                            await fetch("/api/clear_request", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ word: r.word }),
+                            });
+                            alert("Request cleared!");
+                            fetchRequests();
+                          }}
+                          className="text-sm bg-red-600 px-3 py-1 rounded hover:bg-red-700"
+                        >
+                          Clear
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
           )}
         </div>
       );
@@ -303,4 +361,3 @@
   </script>
 </body>
 </html>
-
