@@ -1,367 +1,433 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🌩️ Cloud Dictionary</title>
+  <title>🌩️ Cloud Dictionary — Pro UI</title>
 
-  <!-- React + Babel -->
+  <!-- React UMD -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- TailwindCSS -->
+  <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
 
- <style>
-  body {
-    margin: 0;
-    min-height: 100vh;
-    background: radial-gradient(circle at top, #0f172a, #000);
-    color: #e2e8f0;
-    font-family: 'Inter', sans-serif;
-    overflow-y: auto !important;
-    overflow-x: hidden;
-    scroll-behavior: smooth; /* Smooth scroll */
-  }
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #0f172a, #1e1b4b, #000);
+      background-size: 400% 400%;
+      animation: gradientFlow 15s ease infinite;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      color: #e2e8f0;
+      overflow-y: auto !important;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
 
-  /* Make the dictionary page scroll smoothly and properly */
-  .page-scroll {
-    overflow-y: auto;
-    max-height: calc(100vh - 20px);
-    padding-bottom: 40px;
-    scrollbar-width: thin;
-    scrollbar-color: #3b82f6 #1e293b;
-  }
+    @keyframes gradientFlow {
+      0% {
+        background-position: 0% 50%;
+      }
 
-  /* Custom scrollbar for Webkit browsers */
-  .page-scroll::-webkit-scrollbar {
-    width: 10px;
-  }
-  .page-scroll::-webkit-scrollbar-track {
-    background: #1e293b;
-    border-radius: 10px;
-  }
-  .page-scroll::-webkit-scrollbar-thumb {
-    background: #3b82f6;
-    border-radius: 10px;
-  }
-  .page-scroll::-webkit-scrollbar-thumb:hover {
-    background: #7c3aed;
-  }
+      50% {
+        background-position: 100% 50%;
+      }
 
-  /* Sticky header for Dictionary */
-  .sticky-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(8px);
-    padding: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-</style>
+      100% {
+        background-position: 0% 50%;
+      }
+    }
 
+    .glass-card {
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 20px;
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .glow-title {
+      text-shadow: 0px 0px 18px rgba(139, 92, 246, 0.9);
+    }
+
+    .btn-pro {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+      color: white;
+      padding: 0.9rem 2.5rem;
+      border-radius: 14px;
+      font-weight: 600;
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+      transition: 0.3s ease;
+    }
+
+    .btn-pro:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(236, 72, 153, 0.6);
+    }
+
+    .input-pro {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 14px 0;
+      backdrop-filter: blur(12px);
+      background: rgba(15, 23, 42, 0.75);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
 </head>
 
 <body>
   <div id="root"></div>
 
-  <script type="text/babel">
-    const { useState } = React;
+  <!-- FULL REACT APP BELOW (NO JSX) -->
+  <script>
+    (function () {
+      const { createElement: h, useState, useEffect } = React;
+      const { createRoot } = ReactDOM;
 
-    function App() {
-      const [page, setPage] = useState("landing");
-      const [role, setRole] = useState(null);
-      const [credentials, setCredentials] = useState({ id: "", password: "" });
-
-      const handleLogin = async () => {
-        const res = await fetch("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...credentials, role }),
+      // Fetch helper
+      function fetchJson(url, opts) {
+        return fetch(url, opts).then(async res => {
+          const ct = res.headers.get('content-type') || '';
+          let data;
+          try {
+            data = ct.includes('application/json') ? await res.json() : { message: await res.text() };
+          } catch (e) {
+            data = { error: 'Invalid JSON' };
+          }
+          if (!res.ok) throw new Error(data.error || data.message || 'Request failed');
+          return data;
         });
-        const data = await res.json();
-        if (res.ok) {
-          setPage("dictionary");
-        } else {
-          alert(data.error);
+      }
+
+      // UI components
+      function Button({ children, onClick, className = '', type = 'button' }) {
+        return h('button', { type, onClick: onClick || (() => { }), className }, children);
+      }
+      function Input(props) {
+        return h('input', Object.assign({ className: 'input-pro' }, props));
+      }
+
+      // Header
+      function Header({ onLogout, role }) {
+        return h('header', { className: 'sticky-header flex items-center justify-between px-6 max-w-6xl mx-auto' },
+          h('div', { className: 'flex items-center gap-4' },
+            h('div', {
+              className: 'w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-pink-500 flex items-center justify-center shadow-lg'
+            }, h('span', { className: 'text-xl font-bold' }, '☁')),
+            h('div', null,
+              h('h1', { className: 'text-2xl font-extrabold glow-title' }, 'Cloud Dictionary'),
+              h('p', { className: 'text-sm text-gray-300 mt-0.5' }, 'English ↔ Garhwali'))
+          ),
+          h('div', { className: 'flex items-center gap-3' },
+            h('span', { className: 'text-sm px-3 py-1 rounded bg-slate-800 text-white' },
+              role === 'admin' ? 'Admin' : 'User'),
+            h(Button, { onClick: onLogout, className: 'btn-pro' }, 'Logout')
+          )
+        );
+      }
+
+      // Word Result Card
+      function WordCard({ data }) {
+        if (!data) return h('div', { className: 'p-6 text-gray-400' }, 'Search a word to see results');
+
+        const phon = data.phonetics && data.phonetics.length ? data.phonetics[0].text : null;
+
+        return h('article', { className: 'glass-card p-6 rounded-2xl mt-6' },
+          h('div', { className: 'flex justify-between items-start gap-4' },
+            h('div', null,
+              h('h2', { className: 'text-3xl font-bold mb-1' }, data.word || ''),
+              phon ? h('div', { className: 'text-sm text-gray-300 italic' }, phon) : null
+            ),
+            data.garhwali ? h('div', { className: 'text-right' },
+              h('div', { className: 'text-sm text-green-300' }, 'Garhwali'),
+              h('div', { className: 'text-xl font-semibold mt-1' }, data.garhwali)
+            ) : null
+          ),
+
+          (data.meanings || []).map((m, idx) =>
+            h('section', { key: idx, className: 'mt-5' },
+              h('h3', { className: 'uppercase text-indigo-200 text-sm font-semibold' }, m.partOfSpeech || ''),
+              h('ul', { className: 'mt-2 list-disc pl-6 space-y-3 text-gray-200' },
+                (m.definitions || []).map((d, i) =>
+                  h('li', { key: i },
+                    h('div', null, d.definition),
+                    d.example ? h('div', { className: 'text-sm text-gray-400 italic mt-1' }, `“${d.example}”`) : null
+                  )
+                )
+              )
+            )
+          )
+        );
+      }
+
+      // Admin Panel
+      function AdminPanel({ onAdd, onRefresh, requests = [], onClear }) {
+        return h('aside', { className: 'w-full lg:w-1/3 lg:pl-6 mt-6' },
+          h('div', { className: 'glass-card p-6 rounded-2xl' },
+            h('h4', { className: 'text-lg font-semibold mb-3' }, 'Admin Tools'),
+
+            h('div', { className: 'mb-4' },
+              h('label', { className: 'text-sm text-gray-300' }, 'Add Translation'),
+              h('div', { className: 'mt-2 flex gap-2' },
+                h('input', { id: 'admin_word', placeholder: 'English word', className: 'input-pro flex-1' }),
+                h('input', { id: 'admin_trans', placeholder: 'Garhwali', className: 'input-pro w-40' })
+              ),
+              h('div', { className: 'mt-3 flex gap-2' },
+                h(Button, {
+                  className: 'btn-pro', onClick: () => {
+                    const w = document.getElementById('admin_word').value.trim();
+                    const t = document.getElementById('admin_trans').value.trim();
+                    onAdd(w, t);
+                  }
+                }, 'Add')
+              )
+            ),
+
+            h('div', null,
+              h('div', { className: 'flex items-center justify-between mb-2' },
+                h('h5', { className: 'text-sm font-medium text-gray-200' }, 'Pending Requests'),
+                h(Button, { className: 'text-sm px-3 py-1 bg-indigo-600 rounded', onClick: onRefresh }, 'Refresh')
+              ),
+              requests.length ?
+              h('ul', { className: 'space-y-2' },
+                requests.map((r, i) =>
+                  h('li', { key: i, className: 'flex justify-between items-center bg-slate-800 p-2 rounded' },
+                    h('span', null, r.word),
+                    h(Button, {
+                      className: 'text-sm px-3 py-1 bg-red-600 rounded',
+                      onClick: () => onClear(r.word)
+                    }, 'Clear')
+                  )
+                )
+              ) :
+              h('div', { className: 'text-gray-400 text-sm' }, 'No pending requests')
+            )
+          )
+        );
+      }
+
+      // Main Dictionary Screen
+      function Dictionary({ role, onLogout }) {
+        const [query, setQuery] = useState('');
+        const [results, setResults] = useState(null);
+        const [loading, setLoading] = useState(false);
+        const [requests, setRequests] = useState([]);
+
+        async function doSearch(q) {
+          const w = (q || query || '').trim();
+          if (!w) return;
+          setLoading(true);
+          try {
+            const data = await fetchJson('/api/define/' + encodeURIComponent(w));
+            setResults(data);
+          } catch (e) {
+            alert(e.message);
+            setResults(null);
+          }
+          setLoading(false);
         }
-      };
 
-      const handleLogout = async () => {
-        await fetch("/api/logout", { method: "POST" });
-        setPage("landing");
-        setRole(null);
-      };
+        async function requestTranslation(word) {
+          try {
+            const r = await fetchJson('/api/request_translation', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ word })
+            });
+            alert(r.message || 'Requested');
+          } catch (e) {
+            alert(e.message);
+          }
+        }
 
-      // 🌌 Landing Page
-      if (page === "landing") {
-        return (
-          <div className="flex flex-col items-center justify-center h-screen fade-in">
-            <h1 className="text-5xl md:text-6xl font-extrabold mb-16 text-blue-400 glow-text">
-              🌩️ Cloud Dictionary
-            </h1>
-            <div className="flex flex-col md:flex-row gap-8">
-              <button
-                className="glow-button"
-                onClick={() => {
-                  setRole("user");
-                  setPage("dictionary");
-                }}
-              >
-                👤 I’m a User
-              </button>
-              <button
-                className="glow-button"
-                onClick={() => {
-                  setRole("admin");
-                  setPage("admin-login");
-                }}
-              >
-                🔐 I’m an Admin
-              </button>
-            </div>
-          </div>
+        async function addTranslation(word, gar) {
+          if (!word || !gar) {
+            alert('Both required');
+            return;
+          }
+          try {
+            const r = await fetchJson('/api/add_translation', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ word, garhwali: gar })
+            });
+            alert(r.message);
+          } catch (e) {
+            alert(e.message);
+          }
+        }
+
+        async function fetchRequests() {
+          try {
+            const rs = await fetchJson('/api/get_requests');
+            setRequests(rs || []);
+          } catch (e) {
+            alert(e.message);
+          }
+        }
+
+        async function clearRequest(word) {
+          try {
+            await fetchJson('/api/clear_request', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ word })
+            });
+            alert('Cleared');
+            fetchRequests();
+          } catch (e) {
+            alert(e.message);
+          }
+        }
+
+        return h('div', { className: 'max-w-6xl mx-auto py-8 px-6' },
+          h(Header, { onLogout, role }),
+
+          h('div', { className: 'mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6' },
+
+            // Search + Results column
+            h('main', { className: 'lg:col-span-2' },
+              h('div', { className: 'glass-card p-6 rounded-2xl' },
+                h('div', { className: 'flex gap-3 items-center' },
+                  h('input', {
+                    value: query,
+                    onChange: e => setQuery(e.target.value),
+                    onKeyDown: e => { if (e.key === 'Enter') doSearch(); },
+                    placeholder: 'Search for a word (e.g. water)',
+                    className: 'input-pro flex-1 text-lg'
+                  }),
+                  h(Button, { className: 'btn-pro', onClick: () => doSearch() },
+                    loading ? 'Searching...' : 'Search'
+                  )
+                )
+              ),
+
+              h(WordCard, { data: results }),
+
+              // User translation request button
+              (!results || results.garhwali) ? null :
+              h('div', { className: 'mt-4' },
+                h(Button, {
+                  className: 'px-4 py-2 bg-yellow-500 rounded text-black',
+                  onClick: () => requestTranslation(results.word)
+                }, 'Request Garhwali Translation')
+              )
+            ),
+
+            // Admin Panel (Right Column)
+            role === 'admin'
+              ? h(AdminPanel, { onAdd: addTranslation, onRefresh: fetchRequests, requests, onClear: clearRequest })
+              : h('aside', { className: 'w-full lg:w-1/3 lg:pl-6 mt-6' },
+                h('div', { className: 'glass-card p-6 rounded-2xl' },
+                  h('h4', { className: 'text-lg font-semibold mb-2' }, 'About'),
+                  h('p', { className: 'text-gray-300 text-sm' }, 'Cloud Dictionary — English ↔ Garhwali. Login as admin to manage translations.')
+                )
+              )
+          )
         );
       }
 
-      // 🔑 Admin Login Page
-      if (page === "admin-login") {
-        return (
-          <div className="flex flex-col items-center justify-center h-screen fade-in">
-            <h1 className="text-4xl font-bold text-purple-400 mb-6 glow-text">
-              Admin Login
-            </h1>
-            <div className="card p-8 rounded-2xl w-80">
-              <input
-                className="w-full mb-3 p-3 rounded bg-slate-800 text-white"
-                placeholder="Admin ID"
-                value={credentials.id}
-                onChange={(e) => setCredentials({ ...credentials, id: e.target.value })}
-              />
-              <input
-                type="password"
-                className="w-full mb-5 p-3 rounded bg-slate-800 text-white"
-                placeholder="Password"
-                value={credentials.password}
-                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-              />
-              <button
-                onClick={handleLogin}
-                className="w-full glow-button text-center"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => setPage("landing")}
-                className="text-gray-400 text-sm mt-3 hover:text-gray-200"
-              >
-                ← Back
-              </button>
-            </div>
-          </div>
+      // Admin Login
+      function AdminLogin({ credentials, setCredentials, onLogin, onBack }) {
+        return h('div', { className: 'min-h-screen flex items-center justify-center' },
+          h('div', { className: 'w-full max-w-md' },
+            h('div', { className: 'glass-card p-8 rounded-2xl' },
+              h('h2', { className: 'text-2xl font-bold mb-4' }, 'Admin Login'),
+              h('input', {
+                placeholder: 'Admin ID',
+                value: credentials.id,
+                onChange: e => setCredentials({ ...credentials, id: e.target.value }),
+                className: 'input-pro w-full mb-3'
+              }),
+              h('input', {
+                placeholder: 'Password',
+                type: 'password',
+                value: credentials.password,
+                onChange: e => setCredentials({ ...credentials, password: e.target.value }),
+                className: 'input-pro w-full mb-4'
+              }),
+              h('div', { className: 'flex gap-3' },
+                h(Button, { className: 'btn-pro flex-1', onClick: onLogin }, 'Login as Admin'),
+                h(Button, { className: 'px-4 py-2 bg-gray-700 rounded text-white', onClick: onBack }, 'Back')
+              )
+            )
+          )
         );
       }
 
-      // 📘 Dictionary Panel
-      return <Dictionary role={role} handleLogout={handleLogout} />;
-    }
+      // Landing Page
+      function Landing({ onChooseRole }) {
+        return h('div', { className: 'min-h-screen flex flex-col items-center justify-center px-6' },
+          h('div', { className: 'text-center max-w-2xl' },
+            h('h1', { className: 'text-5xl font-extrabold glow-title mb-4' }, '🌩️ Cloud Dictionary'),
+            h('p', { className: 'text-gray-300 mb-8' },
+              'A modern English ↔ Garhwali dictionary. Search words, request translations, and manage data as admin.'
+            ),
+            h('div', { className: 'flex gap-4 justify-center' },
+              h(Button, { className: 'btn-pro', onClick: () => onChooseRole('user') }, 'Try as User'),
+              h(Button, { className: 'px-6 py-3 bg-white/10 rounded text-white', onClick: () => onChooseRole('admin') }, 'Admin Login')
+            )
+          )
+        );
+      }
 
-    function Dictionary({ role, handleLogout }) {
-      const [query, setQuery] = useState("");
-      const [results, setResults] = useState(null);
-      const [newWord, setNewWord] = useState("");
-      const [newTranslation, setNewTranslation] = useState("");
-      const [requests, setRequests] = useState([]);
+      // Entire App
+      function App() {
+        const [page, setPage] = useState('landing');
+        const [role, setRole] = useState(null);
+        const [credentials, setCredentials] = useState({ id: '', password: '' });
 
-      const handleSearch = async () => {
-        if (!query.trim()) return;
-        const res = await fetch(`/api/define/${encodeURIComponent(query)}`);
-        const data = await res.json();
-        if (res.ok) setResults(data);
-        else alert(data.error);
-      };
+        async function handleLogin() {
+          try {
+            await fetchJson('/api/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ...credentials, role: 'admin' })
+            });
+            setRole('admin');
+            setPage('dictionary');
+          } catch (e) { alert(e.message); }
+        }
 
-      const addTranslation = async () => {
-        const res = await fetch("/api/add_translation", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ word: newWord, garhwali: newTranslation }),
-        });
-        const data = await res.json();
-        alert(data.message || data.error);
-      };
+        async function handleLogout() {
+          try { await fetchJson('/api/logout', { method: 'POST' }); } catch (e) { }
+          setRole(null);
+          setPage('landing');
+          setCredentials({ id: '', password: '' });
+        }
 
-      const fetchRequests = async () => {
-        const res = await fetch("/api/get_requests");
-        const data = await res.json();
-        setRequests(data);
-      };
+        if (page === 'landing') {
+          return h(Landing, {
+            onChooseRole: (r) => {
+              setRole(r);
+              setPage(r === 'user' ? 'dictionary' : 'admin-login');
+            }
+          });
+        }
 
-      return (
-        <div className="flex flex-col items-center min-h-screen p-6 fade-in">
-          <div className="flex justify-between w-full max-w-3xl mb-6">
-            <h1 className="text-3xl font-bold text-blue-400 glow-text">
-              🌩️ Cloud Dictionary
-            </h1>
-            <button
-              onClick={handleLogout}
-              className="text-sm bg-red-500 px-3 py-1 rounded hover:bg-red-600"
-            >
-              Logout
-            </button>
-          </div>
+        if (page === 'admin-login') {
+          return h(AdminLogin, {
+            credentials, setCredentials, onLogin: handleLogin,
+            onBack: () => setPage('landing')
+          });
+        }
 
-          {/* Search Section */}
-          <div className="card w-full max-w-lg p-6 rounded-2xl">
-            <div className="flex gap-2 mb-4">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type a word..."
-                className="flex-1 p-3 rounded bg-slate-800 text-white"
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-              <button
-                onClick={handleSearch}
-                className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Search
-              </button>
-            </div>
+        return h(Dictionary, { role, onLogout: handleLogout });
+      }
 
-            {results && (
-              <div className="mt-4">
-                <h2 className="text-3xl text-blue-300 font-semibold mb-2">
-                  {results.word}
-                </h2>
-                {results.phonetics?.length > 0 && (
-                  <p className="text-gray-400 italic mb-3">
-                    {results.phonetics[0].text || ""}
-                  </p>
-                )}
-
-                {/* Garhwali Translation */}
-                {results.garhwali ? (
-                  <p className="text-green-400 text-lg mb-4">
-                    Garhwali: <span className="text-white">{results.garhwali}</span>
-                  </p>
-                ) : (
-                  <div className="flex flex-col items-start gap-2 mb-4">
-                    <p className="text-yellow-400 text-lg">Garhwali: Not available</p>
-                    {role === "user" && (
-                      <button
-                        onClick={async () => {
-                          const res = await fetch("/api/request_translation", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ word: results.word }),
-                          });
-                          const data = await res.json();
-                          alert(data.message || data.error);
-                        }}
-                        className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded text-white"
-                      >
-                        Request Translation
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* English Meanings */}
-                {results.meanings?.map((meaning, idx) => (
-                  <div key={idx} className="mt-3">
-                    <h3 className="text-xl text-blue-400 font-semibold mb-1">
-                      {meaning.partOfSpeech}
-                    </h3>
-                    <ul className="list-disc pl-5 space-y-2 text-gray-300">
-                      {meaning.definitions?.map((def, i) => (
-                        <li key={i}>
-                          {def.definition}
-                          {def.example && (
-                            <p className="text-gray-500 italic mt-1">
-                              “{def.example}”
-                            </p>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Admin Section */}
-          {role === "admin" && (
-            <>
-              {/* Add Translation */}
-              <div className="card mt-8 p-6 rounded-2xl w-full max-w-lg">
-                <h3 className="text-xl font-semibold mb-4 text-blue-400">Add Garhwali Translation</h3>
-                <input
-                  placeholder="English word"
-                  value={newWord}
-                  onChange={(e) => setNewWord(e.target.value)}
-                  className="w-full p-2 mb-3 rounded bg-slate-800 text-white"
-                />
-                <input
-                  placeholder="Garhwali translation"
-                  value={newTranslation}
-                  onChange={(e) => setNewTranslation(e.target.value)}
-                  className="w-full p-2 mb-3 rounded bg-slate-800 text-white"
-                />
-                <button
-                  onClick={addTranslation}
-                  className="bg-green-500 px-4 py-2 rounded hover:bg-green-600 font-semibold"
-                >
-                  Add Translation
-                </button>
-              </div>
-
-              {/* View Translation Requests */}
-              <div className="card mt-8 p-6 rounded-2xl w-full max-w-lg">
-                <h3 className="text-xl font-semibold mb-4 text-blue-400">Pending Translation Requests</h3>
-                <button
-                  onClick={fetchRequests}
-                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mb-3"
-                >
-                  Refresh Requests
-                </button>
-                {requests.length === 0 ? (
-                  <p className="text-gray-400">No pending requests</p>
-                ) : (
-                  <ul className="space-y-2">
-                    {requests.map((r, idx) => (
-                      <li key={idx} className="flex justify-between items-center">
-                        <span className="text-gray-200">{r.word}</span>
-                        <button
-                          onClick={async () => {
-                            await fetch("/api/clear_request", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ word: r.word }),
-                            });
-                            alert("Request cleared!");
-                            fetchRequests();
-                          }}
-                          className="text-sm bg-red-600 px-3 py-1 rounded hover:bg-red-700"
-                        >
-                          Clear
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      );
-    }
-
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+      createRoot(document.getElementById('root')).render(h(App));
+    })();
   </script>
+
 </body>
 </html>
-
