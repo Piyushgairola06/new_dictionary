@@ -1,4 +1,4 @@
-<!-- CLEAN MODERN LOGIN + LANDING UI (Bailey & Co style) -->
+<!-- FULL TEAL + ORANGE CORPORATE UI (STYLE C) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,21 +6,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cloud Dictionary</title>
 
+  <!-- React UMD -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Tailwind -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet" />
 
   <style>
     body {
       margin: 0;
-      min-height: 100vh;
-      background: #0f172a;
-      font-family: Inter, sans-serif;
+      background: #062726; /* deep teal */
       color: #e2e8f0;
-      overflow-y: auto;
+      font-family: Inter, sans-serif;
       overflow-x: hidden;
+      overflow-y: auto;
     }
 
+    /* Center layout */
     .center-page {
       min-height: 100vh;
       display: flex;
@@ -29,81 +32,72 @@
       padding: 20px;
     }
 
-    .login-card {
-      background: #111827;
+    /* Card styling */
+    .card {
+      background: #0b3634; /* darker teal */
       padding: 40px;
-      border-radius: 16px;
-      width: 380px;
-      box-shadow: 0 0 50px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 18px;
+      width: 400px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0px 0px 20px rgba(0,0,0,0.4);
     }
 
     .input-box {
       width: 100%;
       padding: 12px 14px;
       border-radius: 10px;
-      background: #1f2937;
-      border: 1px solid #374151;
+      background: #12403d;
+      border: 1px solid #1f524f;
       color: #fff;
       margin-bottom: 14px;
+      font-size: 15px;
     }
 
-    .btn-main {
-      width: 100%;
+    .btn-orange {
+      background: #f97316; /* bright orange */
+      color: white;
       padding: 12px;
-      background: #ef4444;
+      width: 100%;
       border-radius: 10px;
-      color: #fff;
-      font-weight: bold;
-      margin-top: 4px;
+      font-weight: 600;
     }
 
+    .btn-orange:hover { background: #fb8c3c; }
+
+    /* Landing Split */
     .split-box {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 40px;
       width: 900px;
+      gap: 40px;
       align-items: center;
     }
 
     .left-logo-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      text-align: center;
       padding-right: 40px;
-      border-right: 1px solid rgba(255,255,255,0.1);
+      border-right: 1px solid rgba(255,255,255,0.2);
     }
 
-    .brand-logo {
-      width: 90px;
-      height: 90px;
-      background: linear-gradient(135deg,#f59e0b,#dc2626);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      margin-bottom: 20px;
+    /* Dictionary card */
+    .dict-card {
+      background: #0b3634;
+      padding: 30px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
 
-    .clean-btn {
-      padding: 10px 22px;
-      border-radius: 8px;
-      background: #3b82f6;
-      color: white;
-      font-weight: 500;
-    }
-
-    .outline-btn {
-      padding: 10px 22px;
-      border-radius: 8px;
-      border: 1px solid #64748b;
+    .btn-outline {
+      border: 1px solid #1f524f;
+      padding: 10px 20px;
+      border-radius: 10px;
+      background: #12403d;
       color: #e2e8f0;
     }
+    .btn-outline:hover { background: #18524e; }
   </style>
 </head>
-
 <body>
   <div id="root"></div>
 
@@ -112,23 +106,29 @@
   const { createElement: h, useState } = React;
   const { createRoot } = ReactDOM;
 
-  // Basic fetch helper
-  function fetchJson(url, opts){return fetch(url,opts).then(r=>r.json());}
+  function fetchJson(url, opts){
+    return fetch(url,opts).then(async res => {
+      const data = await res.json().catch(()=>({error:'Invalid JSON'}));
+      if(!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    });
+  }
 
-  /* LANDING UI */
-  function Landing({setPage,setRole}){
+  /* LANDING */
+  function Landing({ setPage, setRole }){
     return h('div',{className:'center-page'},
       h('div',{className:'split-box'},
         h('div',{className:'left-logo-box'},
-          h('div',{className:'brand-logo'},'⚡'),
-          h('h1',{className:'text-3xl font-bold'} ,'Cloud Dictionary'),
-          h('p',{className:'text-gray-400 mt-2 text-center'} ,'English ↔ Garhwali Translator')
+          h('div',{className:'text-6xl mb-4'},'🟧'),
+          h('h1',{className:'text-3xl font-bold'},'Cloud Dictionary'),
+          h('p',{className:'text-gray-300 mt-2 text-center'},'English ↔ Garhwali Translator')
         ),
-        h('div',null,
+
+        h('div',{},
           h('h2',{className:'text-2xl font-semibold mb-6'},'Continue as'),
           h('div',{className:'flex gap-4'},
-            h('button',{className:'clean-btn',onClick:()=>{setRole('user');setPage('dictionary');}},'User'),
-            h('button',{className:'outline-btn',onClick:()=>{setRole('admin');setPage('admin-login');}},'Admin')
+            h('button',{className:'btn-orange',onClick:()=>{setRole('user');setPage('dictionary');}},'User'),
+            h('button',{className:'btn-outline',onClick:()=>{setRole('admin');setPage('admin-login');}},'Admin')
           )
         )
       )
@@ -136,36 +136,71 @@
   }
 
   /* ADMIN LOGIN */
-  function AdminLogin({setPage,setRole}){
+  function AdminLogin({ setPage, setRole }){
     const [id,setId]=useState('');
     const [pass,setPass]=useState('');
 
     async function login(){
-      const r = await fetch('/api/login',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({id, password:pass, role:'admin'})
-      });
-      const d = await r.json();
-      if(r.ok){ setRole('admin'); setPage('dictionary'); }
-      else alert(d.error);
+      try{
+        await fetchJson('/api/login',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({id,password:pass,role:'admin'})
+        });
+        setRole('admin');
+        setPage('dictionary');
+      }catch(e){ alert(e.message); }
     }
 
     return h('div',{className:'center-page'},
-      h('div',{className:'login-card'},
+      h('div',{className:'card'},
         h('h2',{className:'text-2xl font-bold mb-6 text-center'},'Admin Login'),
         h('input',{className:'input-box',placeholder:'Admin ID',value:id,onChange:e=>setId(e.target.value)}),
         h('input',{className:'input-box',placeholder:'Password',type:'password',value:pass,onChange:e=>setPass(e.target.value)}),
-        h('button',{className:'btn-main',onClick:login},'Login'),
-        h('p',{className:'mt-3 text-center text-sm text-gray-400 cursor-pointer',onClick:()=>setPage('landing')},'Back')
+        h('button',{className:'btn-orange mt-2',onClick:login},'Login'),
+        h('p',{className:'mt-4 text-center text-sm text-gray-300 cursor-pointer',onClick:()=>setPage('landing')},'Back')
       )
     );
   }
 
-  /* DICTIONARY (YOUR EXISTING) */
-  function Dictionary({role,setPage,setRole}){
-    return h('div',{className:'text-white p-10'},
-      h('h1',{className:'text-3xl font-bold'} ,'Dictionary Area (UI Clean)'),
-      h('button',{className:'mt-4 outline-btn',onClick:async()=>{
+  /* DICTIONARY */
+  function Dictionary({ role, setPage, setRole }){
+    const [query,setQuery]=useState('');
+    const [data,setData]=useState(null);
+
+    async function search(){
+      if(!query.trim()) return;
+      try{
+        const d = await fetchJson('/api/define/'+encodeURIComponent(query));
+        setData(d);
+      }catch(e){ alert(e.message); }
+    }
+
+    return h('div',{className:'p-10 max-w-3xl mx-auto'},
+      h('h1',{className:'text-3xl font-bold mb-6'},'Dictionary'),
+
+      h('div',{className:'dict-card'},
+        h('input',{
+          className:'input-box w-full mb-3', placeholder:'Search a word...',
+          value:query, onChange:e=>setQuery(e.target.value),
+          onKeyDown:e=>{if(e.key==='Enter') search();}
+        }),
+        h('button',{className:'btn-orange w-full',onClick:search},'Search')
+      ),
+
+      data ? h('div',{className:'dict-card mt-6'},
+        h('h2',{className:'text-2xl font-semibold mb-3'},data.word),
+        data.phonetics?.length ? h('p',{className:'text-gray-300 italic mb-2'},data.phonetics[0].text):null,
+        data.garhwali ? h('p',{className:'text-orange-400 text-lg mb-3'},'Garhwali: '+data.garhwali):null,
+
+        (data.meanings || []).map((m,i)=>h('div',{key:i,className:'mt-4'},
+          h('h3',{className:'text-lg font-bold mb-2'},m.partOfSpeech),
+          h('ul',{className:'list-disc pl-6 space-y-2'},
+            m.definitions.map((d,j)=>h('li',{key:j},d.definition))
+          )
+        ))
+      ):null,
+
+      h('button',{className:'btn-outline mt-8',onClick:async()=>{
         await fetch('/api/logout',{method:'POST'});
         setRole(null);setPage('landing');
       }},'Logout')
@@ -178,13 +213,4 @@
     const [role,setRole]=useState(null);
 
     if(page==='landing') return h(Landing,{setPage,setRole});
-    if(page==='admin-login') return h(AdminLogin,{setPage,setRole});
-    return h(Dictionary,{role,setPage,setRole});
-  }
-
-  createRoot(document.getElementById('root')).render(h(App));
-})();
-</script>
-
-</body>
-</html>
+    if(page==='admin-login') return h(Admin
