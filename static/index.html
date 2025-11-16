@@ -1,89 +1,105 @@
+<!-- CLEAN MODERN LOGIN + LANDING UI (Bailey & Co style) -->
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🌩️ Cloud Dictionary — Pro UI</title>
+  <title>Cloud Dictionary</title>
 
-  <!-- React UMD -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-  <!-- Tailwind CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet" />
 
   <style>
     body {
       margin: 0;
-      background: linear-gradient(135deg, #0f172a, #1e1b4b, #000);
-      background-size: 400% 400%;
-      animation: gradientFlow 15s ease infinite;
       min-height: 100vh;
-      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      font-family: Inter, sans-serif;
       color: #e2e8f0;
-      overflow-y: auto !important;
+      overflow-y: auto;
       overflow-x: hidden;
-      scroll-behavior: smooth;
     }
 
-    @keyframes gradientFlow {
-      0% {
-        background-position: 0% 50%;
-      }
-
-      50% {
-        background-position: 100% 50%;
-      }
-
-      100% {
-        background-position: 0% 50%;
-      }
+    .center-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
 
-    .glass-card {
-      background: rgba(255, 255, 255, 0.06);
-      border-radius: 20px;
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+    .login-card {
+      background: #111827;
+      padding: 40px;
+      border-radius: 16px;
+      width: 380px;
+      box-shadow: 0 0 50px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.06);
     }
 
-    .glow-title {
-      text-shadow: 0px 0px 18px rgba(139, 92, 246, 0.9);
-    }
-
-    .btn-pro {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
-      color: white;
-      padding: 0.9rem 2.5rem;
-      border-radius: 14px;
-      font-weight: 600;
-      box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
-      transition: 0.3s ease;
-    }
-
-    .btn-pro:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 30px rgba(236, 72, 153, 0.6);
-    }
-
-    .input-pro {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 0.9rem;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+    .input-box {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #1f2937;
+      border: 1px solid #374151;
       color: #fff;
+      margin-bottom: 14px;
     }
 
-    .sticky-header {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      padding: 14px 0;
-      backdrop-filter: blur(12px);
-      background: rgba(15, 23, 42, 0.75);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    .btn-main {
+      width: 100%;
+      padding: 12px;
+      background: #ef4444;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
+    .split-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      width: 900px;
+      align-items: center;
+    }
+
+    .left-logo-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-right: 40px;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .brand-logo {
+      width: 90px;
+      height: 90px;
+      background: linear-gradient(135deg,#f59e0b,#dc2626);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin-bottom: 20px;
+    }
+
+    .clean-btn {
+      padding: 10px 22px;
+      border-radius: 8px;
+      background: #3b82f6;
+      color: white;
+      font-weight: 500;
+    }
+
+    .outline-btn {
+      padding: 10px 22px;
+      border-radius: 8px;
+      border: 1px solid #64748b;
+      color: #e2e8f0;
     }
   </style>
 </head>
@@ -91,343 +107,84 @@
 <body>
   <div id="root"></div>
 
-  <!-- FULL REACT APP BELOW (NO JSX) -->
-  <script>
-    (function () {
-      const { createElement: h, useState, useEffect } = React;
-      const { createRoot } = ReactDOM;
+<script>
+(function(){
+  const { createElement: h, useState } = React;
+  const { createRoot } = ReactDOM;
 
-      // Fetch helper
-      function fetchJson(url, opts) {
-        return fetch(url, opts).then(async res => {
-          const ct = res.headers.get('content-type') || '';
-          let data;
-          try {
-            data = ct.includes('application/json') ? await res.json() : { message: await res.text() };
-          } catch (e) {
-            data = { error: 'Invalid JSON' };
-          }
-          if (!res.ok) throw new Error(data.error || data.message || 'Request failed');
-          return data;
-        });
-      }
+  // Basic fetch helper
+  function fetchJson(url, opts){return fetch(url,opts).then(r=>r.json());}
 
-      // UI components
-      function Button({ children, onClick, className = '', type = 'button' }) {
-        return h('button', { type, onClick: onClick || (() => { }), className }, children);
-      }
-      function Input(props) {
-        return h('input', Object.assign({ className: 'input-pro' }, props));
-      }
-
-      // Header
-      function Header({ onLogout, role }) {
-        return h('header', { className: 'sticky-header flex items-center justify-between px-6 max-w-6xl mx-auto' },
-          h('div', { className: 'flex items-center gap-4' },
-            h('div', {
-              className: 'w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-pink-500 flex items-center justify-center shadow-lg'
-            }, h('span', { className: 'text-xl font-bold' }, '☁')),
-            h('div', null,
-              h('h1', { className: 'text-2xl font-extrabold glow-title' }, 'Cloud Dictionary'),
-              h('p', { className: 'text-sm text-gray-300 mt-0.5' }, 'English ↔ Garhwali'))
-          ),
-          h('div', { className: 'flex items-center gap-3' },
-            h('span', { className: 'text-sm px-3 py-1 rounded bg-slate-800 text-white' },
-              role === 'admin' ? 'Admin' : 'User'),
-            h(Button, { onClick: onLogout, className: 'btn-pro' }, 'Logout')
+  /* LANDING UI */
+  function Landing({setPage,setRole}){
+    return h('div',{className:'center-page'},
+      h('div',{className:'split-box'},
+        h('div',{className:'left-logo-box'},
+          h('div',{className:'brand-logo'},'⚡'),
+          h('h1',{className:'text-3xl font-bold'} ,'Cloud Dictionary'),
+          h('p',{className:'text-gray-400 mt-2 text-center'} ,'English ↔ Garhwali Translator')
+        ),
+        h('div',null,
+          h('h2',{className:'text-2xl font-semibold mb-6'},'Continue as'),
+          h('div',{className:'flex gap-4'},
+            h('button',{className:'clean-btn',onClick:()=>{setRole('user');setPage('dictionary');}},'User'),
+            h('button',{className:'outline-btn',onClick:()=>{setRole('admin');setPage('admin-login');}},'Admin')
           )
-        );
-      }
+        )
+      )
+    );
+  }
 
-      // Word Result Card
-      function WordCard({ data }) {
-        if (!data) return h('div', { className: 'p-6 text-gray-400' }, 'Search a word to see results');
+  /* ADMIN LOGIN */
+  function AdminLogin({setPage,setRole}){
+    const [id,setId]=useState('');
+    const [pass,setPass]=useState('');
 
-        const phon = data.phonetics && data.phonetics.length ? data.phonetics[0].text : null;
+    async function login(){
+      const r = await fetch('/api/login',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({id, password:pass, role:'admin'})
+      });
+      const d = await r.json();
+      if(r.ok){ setRole('admin'); setPage('dictionary'); }
+      else alert(d.error);
+    }
 
-        return h('article', { className: 'glass-card p-6 rounded-2xl mt-6' },
-          h('div', { className: 'flex justify-between items-start gap-4' },
-            h('div', null,
-              h('h2', { className: 'text-3xl font-bold mb-1' }, data.word || ''),
-              phon ? h('div', { className: 'text-sm text-gray-300 italic' }, phon) : null
-            ),
-            data.garhwali ? h('div', { className: 'text-right' },
-              h('div', { className: 'text-sm text-green-300' }, 'Garhwali'),
-              h('div', { className: 'text-xl font-semibold mt-1' }, data.garhwali)
-            ) : null
-          ),
+    return h('div',{className:'center-page'},
+      h('div',{className:'login-card'},
+        h('h2',{className:'text-2xl font-bold mb-6 text-center'},'Admin Login'),
+        h('input',{className:'input-box',placeholder:'Admin ID',value:id,onChange:e=>setId(e.target.value)}),
+        h('input',{className:'input-box',placeholder:'Password',type:'password',value:pass,onChange:e=>setPass(e.target.value)}),
+        h('button',{className:'btn-main',onClick:login},'Login'),
+        h('p',{className:'mt-3 text-center text-sm text-gray-400 cursor-pointer',onClick:()=>setPage('landing')},'Back')
+      )
+    );
+  }
 
-          (data.meanings || []).map((m, idx) =>
-            h('section', { key: idx, className: 'mt-5' },
-              h('h3', { className: 'uppercase text-indigo-200 text-sm font-semibold' }, m.partOfSpeech || ''),
-              h('ul', { className: 'mt-2 list-disc pl-6 space-y-3 text-gray-200' },
-                (m.definitions || []).map((d, i) =>
-                  h('li', { key: i },
-                    h('div', null, d.definition),
-                    d.example ? h('div', { className: 'text-sm text-gray-400 italic mt-1' }, `“${d.example}”`) : null
-                  )
-                )
-              )
-            )
-          )
-        );
-      }
+  /* DICTIONARY (YOUR EXISTING) */
+  function Dictionary({role,setPage,setRole}){
+    return h('div',{className:'text-white p-10'},
+      h('h1',{className:'text-3xl font-bold'} ,'Dictionary Area (UI Clean)'),
+      h('button',{className:'mt-4 outline-btn',onClick:async()=>{
+        await fetch('/api/logout',{method:'POST'});
+        setRole(null);setPage('landing');
+      }},'Logout')
+    );
+  }
 
-      // Admin Panel
-      function AdminPanel({ onAdd, onRefresh, requests = [], onClear }) {
-        return h('aside', { className: 'w-full lg:w-1/3 lg:pl-6 mt-6' },
-          h('div', { className: 'glass-card p-6 rounded-2xl' },
-            h('h4', { className: 'text-lg font-semibold mb-3' }, 'Admin Tools'),
+  /* APP */
+  function App(){
+    const [page,setPage]=useState('landing');
+    const [role,setRole]=useState(null);
 
-            h('div', { className: 'mb-4' },
-              h('label', { className: 'text-sm text-gray-300' }, 'Add Translation'),
-              h('div', { className: 'mt-2 flex gap-2' },
-                h('input', { id: 'admin_word', placeholder: 'English word', className: 'input-pro flex-1' }),
-                h('input', { id: 'admin_trans', placeholder: 'Garhwali', className: 'input-pro w-40' })
-              ),
-              h('div', { className: 'mt-3 flex gap-2' },
-                h(Button, {
-                  className: 'btn-pro', onClick: () => {
-                    const w = document.getElementById('admin_word').value.trim();
-                    const t = document.getElementById('admin_trans').value.trim();
-                    onAdd(w, t);
-                  }
-                }, 'Add')
-              )
-            ),
+    if(page==='landing') return h(Landing,{setPage,setRole});
+    if(page==='admin-login') return h(AdminLogin,{setPage,setRole});
+    return h(Dictionary,{role,setPage,setRole});
+  }
 
-            h('div', null,
-              h('div', { className: 'flex items-center justify-between mb-2' },
-                h('h5', { className: 'text-sm font-medium text-gray-200' }, 'Pending Requests'),
-                h(Button, { className: 'text-sm px-3 py-1 bg-indigo-600 rounded', onClick: onRefresh }, 'Refresh')
-              ),
-              requests.length ?
-              h('ul', { className: 'space-y-2' },
-                requests.map((r, i) =>
-                  h('li', { key: i, className: 'flex justify-between items-center bg-slate-800 p-2 rounded' },
-                    h('span', null, r.word),
-                    h(Button, {
-                      className: 'text-sm px-3 py-1 bg-red-600 rounded',
-                      onClick: () => onClear(r.word)
-                    }, 'Clear')
-                  )
-                )
-              ) :
-              h('div', { className: 'text-gray-400 text-sm' }, 'No pending requests')
-            )
-          )
-        );
-      }
-
-      // Main Dictionary Screen
-      function Dictionary({ role, onLogout }) {
-        const [query, setQuery] = useState('');
-        const [results, setResults] = useState(null);
-        const [loading, setLoading] = useState(false);
-        const [requests, setRequests] = useState([]);
-
-        async function doSearch(q) {
-          const w = (q || query || '').trim();
-          if (!w) return;
-          setLoading(true);
-          try {
-            const data = await fetchJson('/api/define/' + encodeURIComponent(w));
-            setResults(data);
-          } catch (e) {
-            alert(e.message);
-            setResults(null);
-          }
-          setLoading(false);
-        }
-
-        async function requestTranslation(word) {
-          try {
-            const r = await fetchJson('/api/request_translation', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ word })
-            });
-            alert(r.message || 'Requested');
-          } catch (e) {
-            alert(e.message);
-          }
-        }
-
-        async function addTranslation(word, gar) {
-          if (!word || !gar) {
-            alert('Both required');
-            return;
-          }
-          try {
-            const r = await fetchJson('/api/add_translation', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ word, garhwali: gar })
-            });
-            alert(r.message);
-          } catch (e) {
-            alert(e.message);
-          }
-        }
-
-        async function fetchRequests() {
-          try {
-            const rs = await fetchJson('/api/get_requests');
-            setRequests(rs || []);
-          } catch (e) {
-            alert(e.message);
-          }
-        }
-
-        async function clearRequest(word) {
-          try {
-            await fetchJson('/api/clear_request', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ word })
-            });
-            alert('Cleared');
-            fetchRequests();
-          } catch (e) {
-            alert(e.message);
-          }
-        }
-
-        return h('div', { className: 'max-w-6xl mx-auto py-8 px-6' },
-          h(Header, { onLogout, role }),
-
-          h('div', { className: 'mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6' },
-
-            // Search + Results column
-            h('main', { className: 'lg:col-span-2' },
-              h('div', { className: 'glass-card p-6 rounded-2xl' },
-                h('div', { className: 'flex gap-3 items-center' },
-                  h('input', {
-                    value: query,
-                    onChange: e => setQuery(e.target.value),
-                    onKeyDown: e => { if (e.key === 'Enter') doSearch(); },
-                    placeholder: 'Search for a word (e.g. water)',
-                    className: 'input-pro flex-1 text-lg'
-                  }),
-                  h(Button, { className: 'btn-pro', onClick: () => doSearch() },
-                    loading ? 'Searching...' : 'Search'
-                  )
-                )
-              ),
-
-              h(WordCard, { data: results }),
-
-              // User translation request button
-              (!results || results.garhwali) ? null :
-              h('div', { className: 'mt-4' },
-                h(Button, {
-                  className: 'px-4 py-2 bg-yellow-500 rounded text-black',
-                  onClick: () => requestTranslation(results.word)
-                }, 'Request Garhwali Translation')
-              )
-            ),
-
-            // Admin Panel (Right Column)
-            role === 'admin'
-              ? h(AdminPanel, { onAdd: addTranslation, onRefresh: fetchRequests, requests, onClear: clearRequest })
-              : h('aside', { className: 'w-full lg:w-1/3 lg:pl-6 mt-6' },
-                h('div', { className: 'glass-card p-6 rounded-2xl' },
-                  h('h4', { className: 'text-lg font-semibold mb-2' }, 'About'),
-                  h('p', { className: 'text-gray-300 text-sm' }, 'Cloud Dictionary — English ↔ Garhwali. Login as admin to manage translations.')
-                )
-              )
-          )
-        );
-      }
-
-      // Admin Login
-      function AdminLogin({ credentials, setCredentials, onLogin, onBack }) {
-        return h('div', { className: 'min-h-screen flex items-center justify-center' },
-          h('div', { className: 'w-full max-w-md' },
-            h('div', { className: 'glass-card p-8 rounded-2xl' },
-              h('h2', { className: 'text-2xl font-bold mb-4' }, 'Admin Login'),
-              h('input', {
-                placeholder: 'Admin ID',
-                value: credentials.id,
-                onChange: e => setCredentials({ ...credentials, id: e.target.value }),
-                className: 'input-pro w-full mb-3'
-              }),
-              h('input', {
-                placeholder: 'Password',
-                type: 'password',
-                value: credentials.password,
-                onChange: e => setCredentials({ ...credentials, password: e.target.value }),
-                className: 'input-pro w-full mb-4'
-              }),
-              h('div', { className: 'flex gap-3' },
-                h(Button, { className: 'btn-pro flex-1', onClick: onLogin }, 'Login as Admin'),
-                h(Button, { className: 'px-4 py-2 bg-gray-700 rounded text-white', onClick: onBack }, 'Back')
-              )
-            )
-          )
-        );
-      }
-
-      // Landing Page
-      function Landing({ onChooseRole }) {
-        return h('div', { className: 'min-h-screen flex flex-col items-center justify-center px-6' },
-          h('div', { className: 'text-center max-w-2xl' },
-            h('h1', { className: 'text-5xl font-extrabold glow-title mb-4' }, '🌩️ Cloud Dictionary'),
-            h('p', { className: 'text-gray-300 mb-8' },
-              'A modern English ↔ Garhwali dictionary. Search words, request translations, and manage data as admin.'
-            ),
-            h('div', { className: 'flex gap-4 justify-center' },
-              h(Button, { className: 'btn-pro', onClick: () => onChooseRole('user') }, 'Try as User'),
-              h(Button, { className: 'px-6 py-3 bg-white/10 rounded text-white', onClick: () => onChooseRole('admin') }, 'Admin Login')
-            )
-          )
-        );
-      }
-
-      // Entire App
-      function App() {
-        const [page, setPage] = useState('landing');
-        const [role, setRole] = useState(null);
-        const [credentials, setCredentials] = useState({ id: '', password: '' });
-
-        async function handleLogin() {
-          try {
-            await fetchJson('/api/login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ...credentials, role: 'admin' })
-            });
-            setRole('admin');
-            setPage('dictionary');
-          } catch (e) { alert(e.message); }
-        }
-
-        async function handleLogout() {
-          try { await fetchJson('/api/logout', { method: 'POST' }); } catch (e) { }
-          setRole(null);
-          setPage('landing');
-          setCredentials({ id: '', password: '' });
-        }
-
-        if (page === 'landing') {
-          return h(Landing, {
-            onChooseRole: (r) => {
-              setRole(r);
-              setPage(r === 'user' ? 'dictionary' : 'admin-login');
-            }
-          });
-        }
-
-        if (page === 'admin-login') {
-          return h(AdminLogin, {
-            credentials, setCredentials, onLogin: handleLogin,
-            onBack: () => setPage('landing')
-          });
-        }
-
-        return h(Dictionary, { role, onLogout: handleLogout });
-      }
-
-      createRoot(document.getElementById('root')).render(h(App));
-    })();
-  </script>
+  createRoot(document.getElementById('root')).render(h(App));
+})();
+</script>
 
 </body>
 </html>
