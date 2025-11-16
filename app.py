@@ -21,8 +21,8 @@ if not os.path.exists(REQUEST_FILE):
     with open(REQUEST_FILE, "w", encoding="utf-8") as f:
         json.dump([], f)
 
-ADMIN_ID = "admin"
-ADMIN_PASS = "12345"
+ADMIN_ID = "piyush"
+ADMIN_PASS = "1001"
 
 @app.route('/')
 def serve_frontend():
@@ -150,3 +150,4 @@ def clear_request():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
+
